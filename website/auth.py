@@ -5,7 +5,6 @@ from . import db
 from flask_login import login_required, login_user, current_user, logout_user
 
 auth = Blueprint('auth', __name__)
-
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
