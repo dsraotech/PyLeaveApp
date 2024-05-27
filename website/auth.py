@@ -1,5 +1,5 @@
 from flask import Blueprint, redirect, render_template, request, flash, url_for
-from .models import User
+from .models import User, Note
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 from flask_login import login_required, login_user, current_user, logout_user
@@ -72,13 +72,18 @@ def sign_up():
     return render_template("signup.html", user=current_user, users=users)
 
 @auth.route('/delete-user/<int:id>', methods=['POST'])
-@login_required
+#@login_required
 def delete_user(id):
-    print('DSRAO deletion')
     user = User.query.get(id)
     if user:
+        # Delete related records in the notes table
+        Note.query.filter_by(user_id=user.id).delete()
+
         db.session.delete(user)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(e)
         flash('User deleted successfully', category='success')
     else:
         flash('User not found', category='error')
