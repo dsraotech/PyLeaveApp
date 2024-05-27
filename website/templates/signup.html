@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Sign Up{% endblock %}
+{% block content %}
+<h3 align="Center">Sign Up</h3>
+<form method="POST" id="userForm">
+    <input type="hidden" name="user_id" id="user_id" />
+    <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" name="email" id="email" class="form-control" placeholder="Enter Email" required />
+        <label for="firstname">First Name</label>
+        <input type="text" name="firstname" id="firstname" class="form-control" placeholder="Enter First Name" required />
+        <label for="password1">Password</label>
+        <input type="password" name="password1" id="password1" class="form-control" placeholder="Enter Password" />
+        <label for="password2">Confirm Password</label>
+        <input type="password" name="password2" id="password2" class="form-control" placeholder="Confirm Password" />
+    </div>
+    <br>
+    <button type="submit" name="submitbtn" id="submitbtn" class="btn btn-primary">Submit</button>
+</form>
+
+<h3 align="Center">User List</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>First Name</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.email }}</td>
+            <td>{{ user.first_name }}</td>
+            <td>
+                <button class="btn btn-warning" onclick="editUser({{ user.id }}, '{{ user.email }}', '{{ user.first_name }}')">Edit</button>
+                <form action="{{ url_for('auth.delete_user', id=user.id) }}" method="post" style="display:inline-block;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    function editUser(id, email, firstname) {
+        document.getElementById('user_id').value = id;
+        document.getElementById('email').value = email;
+        document.getElementById('firstname').value = firstname;
+        document.getElementById('password1').value = '';
+        document.getElementById('password2').value = '';
+    }
+</script>
+{% endblock %}
