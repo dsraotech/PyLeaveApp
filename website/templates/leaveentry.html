@@ -1,0 +1,42 @@
+<!--logout.html-->
+{% extends "base.html" %}
+{% block title %}Leave Entry{% endblock %}
+{% block content %} 
+    <h2>Leave Request Form</h2>
+    <form method="POST">
+        <label for="leave_type">Leave Type:</label>
+        <select id="leave_type" name="leave_type" required>
+            <option value="CL">CL</option>
+            <option value="LOP">LOP</option>
+            <option value="EL">EL</option>
+            <!-- Add other leave types here -->
+        </select><br><br>
+
+        <label for="leave_from_date">Leave FROM Date:</label>
+        <input type="date" id="leave_from_date" name="leave_from_date" required>
+        <input type="radio" id="morning_from" name="leave_from_period" value="morning" required>
+        <label for="morning_from">Morning</label>
+        <input type="radio" id="afternoon_from" name="leave_from_period" value="afternoon" required>
+        <label for="afternoon_from">Afternoon</label><br><br>
+
+        <label for="leave_to_date">Leave TO Date:</label>
+        <input type="date" id="leave_to_date" name="leave_to_date" required>
+        <input type="radio" id="morning_to" name="leave_to_period" value="morning" required>
+        <label for="morning_to">Morning</label>
+        <input type="radio" id="afternoon_to" name="leave_to_period" value="afternoon" required>
+        <label for="afternoon_to">Afternoon</label><br><br>
+
+        <label for="remarks">Remarks:</label>
+        <input type="text" id="remarks" name="remarks" maxlength="100"><br><br>
+
+        <button type="button" onclick="checkBalance()">Check Balance</button>
+        <input type="submit" value="Submit">
+    </form>
+
+    <script>
+        function checkBalance() {
+            alert('Check leave balance logic not implemented.');
+        }
+    </script>
+
+{% endblock %}
