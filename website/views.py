@@ -4,23 +4,21 @@ from flask_login import login_required, current_user
 from .models import Note, User
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
-from . import db
+from . import db, engine
 from flask_login import login_required, login_user, current_user, logout_user
- 
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+
 views = Blueprint('views', __name__)
-@views.route('/', methods=['GET', 'POST'])
+@views.route('/', methods=['GET'])
 @login_required
 def home():
-    if request.method == 'POST':
-        note = request.form.get('note')
-        if len(note) < 1:
-            flash('Please enter note data', category='error')
-        else:
-            new_note = Note(data=note, user_id=current_user.id)
-            db.session.add(new_note)
-            db.session.commit()
-            flash('Note added!', category='success')
-    return render_template("home.html", user=current_user)
+    with engine.connect() as conn:
+        mytext = "SELECT id_no,sno,to_char(fromdate,'DD-MON-YYYY') fromdate,to_char(todate,'DD-MON-YYYY') todate,descr leave_type, applieddays,reason FROM TLEAVES A, codes_master B"
+        mytext = mytext+" WHERE b.group_code=16 AND a.leave_type=b.sub_code"
+        select_query = text(mytext)
+        result = conn.execute(select_query)   
+    return render_template("home.html", user=current_user, Result=result)
 
 @views.route("/delete-note", methods=['POST'])
 def delete_note():

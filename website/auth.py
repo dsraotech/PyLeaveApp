@@ -1,24 +1,57 @@
 from flask import Blueprint, redirect, render_template, request, flash, url_for
 from .models import User, Note
 #from werkzeug.security import generate_password_hash, check_password_hash
-from . import db
+from . import db, engine
 from flask_login import login_required, login_user, current_user, logout_user
+from sqlalchemy import text
 
 auth = Blueprint('auth', __name__)
+
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
+        empcode = request.form.get('userid')
         password = request.form.get('password')
-        user = User.query.filter_by(email=email).first()
-        if user and user.password==password:
-            flash('User login successful', category='success')
+        print(empcode, password)
+        
+        with engine.connect() as conn:
+            mytext = f"SELECT emp_code, pw, generalname FROM invent.passwords@tams a, empprojtr_master@tams b WHERE a.emp_code=b.id_no AND emp_code = \'{empcode}\'"
+            select_query = text(mytext)
+            result = conn.execute(select_query).first()
+            print(result)
+            print('before Password validation',result[0],result[1])
+        if result and result[1] == password:
+            user = User(result[0],result[2])  # Create a User instance
+            print('after Password validation',result[0],result[1])
             login_user(user, remember=True)
-            return redirect(url_for('views.home'))
+            flash('User login successful', category='success')
+            return redirect(url_for('views.home', luser=True))
+        else:
+            flash('Invalid user code or password', category='error')
+    
+    return render_template("login.html", user=current_user)
+
+
+""" def login():
+    if request.method == 'POST':
+        empcode = request.form.get('userid')
+        password = request.form.get('password')
+        print(empcode,password)
+        with engine.connect() as conn:
+            mytext = f"SELECT emp_code,pw FROM scott.passwords WHERE emp_code=\'{empcode}\'"
+            select_query = text(mytext)
+            result = conn.execute(select_query).first()
+            User.id=1
+            User.userid=result[0]
+            User.first_name=result[0]
+        if result and result[1]==password:
+            flash('User login successful', category='success')
+#            login_user(User, remember=True)
+            return redirect(url_for('views.home',luser=True))
         else:
             flash('Invalid email or password', category='error')
     return render_template("login.html", user=current_user)
-
+ """
 @auth.route('/logout')
 @login_required
 def logout():

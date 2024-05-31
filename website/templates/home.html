@@ -4,20 +4,39 @@
 {% block content %} 
 <br>
 <h4 align='center'>Note</h4>
-<br>
-<form method="POST">
+ <!-- <form method="POST">
     <textarea name="note" id="note" class="form-control"></textarea>
     <br>
     <div align="center">
         <button type="submit" class="btn btn-primary">Add Note</button>
     </div>
-</form>
-{% for note in user.notes%}
-<li class="list-group-item">{{note.data}} 
-    <button type="button" class="close" onClick="deleteNote({{note.id}})">
-        <spam aria-hidden="True">&times;</spam>
-    </button>
-</li>
+</form> -->
+<table class="table">
+    <tr>
+        <td>ID-NO</td>
+        <td>SER-NO</td>
+        <td>FROM-DATE</td>
+        <td>TO-DATE</td>
+        <td>LEAVE-TYPE</td>
+        <td>DAYS</td>
+        <td>REASON</td>
+    </tr>
+{% for result in Result%}
+<!-- <li class="list-group-item">  -->
+    <tr>
+        <td>{{result.id_no}}</td>
+        <td>{{result.sno}}</td>
+        <td>{{result.fromdate}}</td>
+        <td>{{result.todate}}</td>
+        <td>{{result.leave_type}}</td>
+        <td>{{result.applieddays}}</td>
+        <td>{{result.reason}}</td>
+        <!-- <button type="button" class="close" onClick="deleteNote({{result.id_no, result.sno}})">
+            <spam aria-hidden="True">&times;</spam>
+        </button> -->
+        </tr>
+<!-- </li> -->
 {%endfor%}
+</table>
 
 {% endblock %}
