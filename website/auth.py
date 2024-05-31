@@ -22,8 +22,9 @@ def login():
             print('before Password validation',result[0],result[1])
         if result and result[1] == password:
             user = User(result[0],result[2])  # Create a User instance
-            print('after Password validation',result[0],result[1])
+            print('after Password validation',user.emp_name)
             login_user(user, remember=True)
+            print('after LOGIN',user.emp_name)
             flash('User login successful', category='success')
             return redirect(url_for('views.home', luser=True))
         else:

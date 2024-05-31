@@ -37,9 +37,7 @@
           <a class="nav-item nav-link" id="Authorization" href="/approval">Approval</a>
           <a class="nav-item nav-link" id="Authorization" href="/reports">Reports</a>
           <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
-          <h5>{{user.emp_name}}</h5> 
-          <h5>{% user.emp_name %}</h5>
-          <h4>this is my name</h4>
+          <a align="right">{{ user.emp_name }}</a>
           {% else %}
           <a class="nav-item nav-link" id="login" href="/login">Login</a>
           {%endif%}
