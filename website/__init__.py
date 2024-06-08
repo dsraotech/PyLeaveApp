@@ -12,7 +12,6 @@ engine = create_engine('oracle://dsr:dsr@localhost:1521/?service_name=dsrdb')
 with engine.connect() as conn:
         select_query = text("SELECT * FROM TLEAVES")
         result = conn.execute(select_query)
-        print('results',result,result.first())
 
 db = SQLAlchemy()
 DB_NAME = 'database.db'  # This will no longer be used but left for reference
@@ -45,15 +44,12 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(emp_code):
-      print("load user empcode :",emp_code,type(emp_code))
       with engine.connect() as conn:
         query = text(f"SELECT emp_code, pw, generalname FROM invent.passwords@tams a, empprojtr_master@tams b WHERE a.emp_code=b.id_no AND emp_code = \'{emp_code}\'")
         #query = text(f"SELECT emp_code FROM scott.passwords WHERE emp_code = \'{emp_code}\'")
-        print('query ',query)
         result = conn.execute(query).first()
         if result:
             user = User(result[0],result[2])
-            print("LOAD_USER :",user)
             return user
         return None
 

@@ -18,41 +18,17 @@ def login():
             mytext = f"SELECT emp_code, pw, generalname FROM invent.passwords@tams a, empprojtr_master@tams b WHERE a.emp_code=b.id_no AND emp_code = \'{empcode}\'"
             select_query = text(mytext)
             result = conn.execute(select_query).first()
-            print(result)
-            print('before Password validation',result[0],result[1])
         if result and result[1] == password:
             user = User(result[0],result[2])  # Create a User instance
-            print('after Password validation',user.emp_name)
             login_user(user, remember=True)
-            print('after LOGIN',user.emp_name)
             flash('User login successful', category='success')
-            return redirect(url_for('views.home', luser=True))
+            return redirect(url_for('views.home'))
         else:
             flash('Invalid user code or password', category='error')
     
     return render_template("login.html", user=current_user)
 
 
-""" def login():
-    if request.method == 'POST':
-        empcode = request.form.get('userid')
-        password = request.form.get('password')
-        print(empcode,password)
-        with engine.connect() as conn:
-            mytext = f"SELECT emp_code,pw FROM scott.passwords WHERE emp_code=\'{empcode}\'"
-            select_query = text(mytext)
-            result = conn.execute(select_query).first()
-            User.id=1
-            User.userid=result[0]
-            User.first_name=result[0]
-        if result and result[1]==password:
-            flash('User login successful', category='success')
-#            login_user(User, remember=True)
-            return redirect(url_for('views.home',luser=True))
-        else:
-            flash('Invalid email or password', category='error')
-    return render_template("login.html", user=current_user)
- """
 @auth.route('/logout')
 @login_required
 def logout():
@@ -71,9 +47,9 @@ def delete_user(id):
         try:
             db.session.commit()
         except Exception as e:
-            print(e)
+            pass
         flash('User deleted successfully', category='success')
     else:
         flash('User not found', category='error')
-    print('user got deleted')    
+
     return redirect(url_for('views.home'))

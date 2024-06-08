@@ -1,42 +1,118 @@
-<!--logout.html-->
 {% extends "base.html" %}
 {% block title %}Leave Entry{% endblock %}
 {% block content %} 
-    <h2>Leave Request Form</h2>
-    <form method="POST">
-        <label for="leave_type">Leave Type:</label>
-        <select id="leave_type" name="leave_type" required>
-            <option value="CL">CL</option>
-            <option value="LOP">LOP</option>
-            <option value="EL">EL</option>
-            <!-- Add other leave types here -->
-        </select><br><br>
-
-        <label for="leave_from_date">Leave FROM Date:</label>
-        <input type="date" id="leave_from_date" name="leave_from_date" required>
-        <input type="radio" id="morning_from" name="leave_from_period" value="morning" required>
-        <label for="morning_from">Morning</label>
-        <input type="radio" id="afternoon_from" name="leave_from_period" value="afternoon" required>
-        <label for="afternoon_from">Afternoon</label><br><br>
-
-        <label for="leave_to_date">Leave TO Date:</label>
-        <input type="date" id="leave_to_date" name="leave_to_date" required>
-        <input type="radio" id="morning_to" name="leave_to_period" value="morning" required>
-        <label for="morning_to">Morning</label>
-        <input type="radio" id="afternoon_to" name="leave_to_period" value="afternoon" required>
-        <label for="afternoon_to">Afternoon</label><br><br>
-
-        <label for="remarks">Remarks:</label>
-        <input type="text" id="remarks" name="remarks" maxlength="100"><br><br>
-
-        <button type="button" onclick="checkBalance()">Check Balance</button>
-        <input type="submit" value="Submit">
-    </form>
+    <div class="container">
+        <div class="row">
+            <!-- Left Column for Leave Entry Form -->
+            <div class="col-md-6">
+                <h3>Leave Request Form</h4><br>
+                <div id="leaveEntryForm">
+                    <form method="POST" id="myform">
+                        <div class="form-group row">
+                            <label for="leave_type" class="col-md-4 col-form-label">Leave Type:</label>
+                            <div class="col-md-8">
+                                <select id="leave_type" name="leave_type" class="form-control" required>
+                                    {% for leave_type in leave_codes %}
+                                    <option value="{{ leave_type.code }}" data-code="{{ leave_type.code }}">{{ leave_type.descr  }}</option>
+                                    {% endfor %}
+                                    <!-- Add other leave types here -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="leave_from_date" class="col-md-4 col-form-label">Leave FROM Date:</label>
+                            <div class="col-md-8">
+                                <input type="date" id="leave_from_date" name="leave_from_date" class="form-control" required>
+                                <!-- Add radio buttons for leave period -->
+                                <div>
+                                    <input type="radio" id="morning_from" name="leave_from_period" value="0" required>
+                                    <label for="morning_from">Morning</label>
+                                    <input type="radio" id="afternoon_from" name="leave_from_period" value="1" required>
+                                    <label for="afternoon_from">Afternoon</label>
+                                    <input type="radio" id="full_day" name="leave_from_period" value="2" required>
+                                    <label for="afternoon_from">Full Day</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="leave_to_date" class="col-md-4 col-form-label">Leave TO Date:</label>
+                            <div class="col-md-8">
+                                <input type="date" id="leave_to_date" name="leave_to_date" class="form-control" required>
+                                <!-- Add radio buttons for leave period -->
+                                <div>
+                                    <input type="radio" id="morning_to" name="leave_to_period" value="0" required>
+                                    <label for="morning_to">Morning</label>
+                                    <input type="radio" id="afternoon_to" name="leave_to_period" value="1" required>
+                                    <label for="afternoon_to">Afternoon</label>
+                                    <input type="radio" id="fulldayto" name="leave_to_period" value="2" required>
+                                    <label for="afternoon_to">Full day</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="remarks" class="col-md-4 col-form-label">Remarks:</label>
+                            <div class="col-md-8">
+                                <input type="text" id="remarks" name="remarks" class="form-control" maxlength="200">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="offset-md-4 col-md-8">
+                                <button type="button" onclick="checkBalance('{{user.emp_code}}')" class="btn btn-primary">Check Balance</button>
+                                <input type="submit" value="Submit" class="btn btn-success">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Right Column for Employee Leave Balance -->
+     
+            <div class="col-md-6">
+                <div id="leaveBalanceInfo">
+                    <h3>Employee Leave Balance</h3>
+                    <div id="info">
+                        <div id="table"> 
+                            <table class="table">
+                            {% for hdata in htmldata %}
+                             <tr><td>CL</td><td> {{hdata.clsbal}}</td></tr>
+                              <tr><td>EL</td><td> {{hdata.elsbal}}</td></tr>
+                              <tr><td>SL</td><td> {{hdata.slsbal}}</td></tr>
+                              <tr><td>OT</td><td> {{hdata.ohsbal}}</td></tr>
+                             {% endfor %}         
+                            </table>         
+                        </div>
+                        <div id="result">                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        function checkBalance() {
-            alert('Check leave balance logic not implemented.');
+        function checkBalance(empCode) {
+            const form = document.getElementById('myform');
+            // Get form data
+            const formData = new FormData(form);
+    
+            // Send form data to the server
+            fetch("/check-balance", {
+                method: "POST",
+                body: formData  // Send form data directly
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Display the message on the page
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `<p>${data.message}</p>`;
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
         }
     </script>
-
-{% endblock %}
+    {% endblock %}

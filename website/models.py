@@ -19,4 +19,11 @@ class Note(db.Model):
     createdon = db.Column(db.DateTime(timezone=True), default=func.now())
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
+class Leavebal():
+    def __init__(self,clsbal,slsbal,elsbal,ohsbal ):
+        self.clsbal = clsbal
+        self.slsbal = slsbal
+        self.elsbal = elsbal
+        self.ohsbal = ohsbal
+
     

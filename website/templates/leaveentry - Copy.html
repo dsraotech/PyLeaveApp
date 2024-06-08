@@ -1,0 +1,72 @@
+<!--logout.html-->
+{% extends "base.html" %}
+{% block title %}Leave Entry{% endblock %}
+{% block content %} 
+    <h2>Leave Request Form</h2>
+    <div name="result" id="result"></div>
+    <form method="POST">
+        <div class="container border">
+        <table style="width: 70%;" class="table">
+        <tr><td style="width: 15%">
+        <label for="leave_type">Leave Type:</label></td><td style="width: 15%">
+        <select id="leave_type" name="leave_type" required>
+            <option value="CL">CL</option>
+            <option value="LOP">LOP</option>
+            <option value="EL">EL</option>
+            <!-- Add other leave types here -->
+        </select></td></tr>
+        <tr><td style="width: 15%">
+        <label for="leave_from_date">Leave FROM Date:</label></td>
+        <td style="width: 10%"><input type="date" id="leave_from_date" name="leave_from_date" required></td>
+        <td style="width: 35%"> <input type="radio" id="morning_from" name="leave_from_period" value="morning" required>
+        <label for="morning_from">Morning</label>
+        <input type="radio" id="afternoon_from" name="leave_from_period" value="afternoon" required>
+        <label for="afternoon_from">Afternoon</label>
+        <input type="radio" id="full_day" name="leave_from_period" value="fullday" required>
+        <label for="afternoon_from">Full Day</label>
+        </td></tr>
+
+        <tr><td style="width: 15%">
+        <label for="leave_to_date">Leave TO Date:</label></td><td style="width: 15%"> 
+        <input type="date" id="leave_to_date" name="leave_to_date" required></td>
+        <td style="width: 20%"><input type="radio" id="morning_to" name="leave_to_period" value="morning" required>
+        <label for="morning_to">Morning</label>
+        <input type="radio" id="afternoon_to" name="leave_to_period" value="afternoon" required>
+        <label for="afternoon_to">Afternoon</label>
+        <input type="radio" id="fulldayto" name="leave_to_period" value="fullday" required>
+        <label for="afternoon_to">Full day</label></td></tr>
+        <tr><td style="width: 15%"><label for="remarks">Remarks:</label></td>  
+        <td style="width: 15%" colspan="2"><input type="text" class="form-control" id="remarks" name="remarks" maxlength="200">
+        </td></tr></table>
+        </div>
+        <button type="button" onclick="checkBalance('{{user.emp_code}}')">Check Balance</button>
+        <input type="submit" value="Submit">
+    </form>
+    <script>
+        function checkBalance(empCode) {
+            fetch("/check-balance", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({empcode: empCode})
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Display the message on the page
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `<p>${data.message}</p>`;
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+        }
+        </script>
+        
+
+{% endblock %}
