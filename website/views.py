@@ -8,8 +8,11 @@ from . import db, engine
 from flask_login import login_required, login_user, current_user, logout_user
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from datetime import datetime
 leavedata={}
 views = Blueprint('views', __name__)
+result={}
+cl={}
 @views.route('/', methods=['GET'])
 @login_required
 def home():
@@ -44,45 +47,84 @@ def reports():
 
 @views.route('/leaveentry', methods=['GET', 'POST'])
 def leaveentry():
-
- if request.method=='GET':
+   global result, cl
+ #if request.method=='GET':
    with engine.connect() as conn:
-    mytext = "select SUB_CODE code,DESCR from codes_master where GROUP_CODE=16"
+    mytext = "select 99 code,'None' descr from dual  union all select SUB_CODE code,DESCR from codes_master where GROUP_CODE=16 "
     select_query = text(mytext)
     result = conn.execute(select_query)   
-    mytext = f"select CLSBAL,ELSBAL,SLSBAL,OHSBAL from OPBAL@tams where actinact=1 and id_no=\'{current_user.emp_code}\'"
-    select_query = text(mytext)
-    lvdata = conn.execute(select_query) 
-    # lvdata1=dict(lvdata)
-    # row = lvdata.fetchone()
-    # leavedata = Leavebal(row.clsbal,row.elsbal,row.slsbal,row.ohsbal)
-    # print("lvdagta",leavedata.clsbal)
-    
- if request.method=='POST':
-       fdate = request.form.get('leave_from_date')
- return render_template("leaveentry.html", user=current_user,leave_codes=result,htmldata=lvdata)
+    cl = Leavebal.get_leave_balance(current_user.emp_code)
+   if request.method=='POST':
+      pass
+      # Insert into the transactions
+      # Update closing balance 
+                 
+   return render_template("leaveentry.html", user=current_user,leave_codes=result,cl_data=cl)
 
 
 
 @views.route("/check-balance", methods=['POST'])
 def checkbalance():
     formdata = request.form  # Access form data from request object
-    print(type(leavedata))
-    print(leavedata)
+    cl = Leavebal.get_leave_balance(current_user.emp_code)
+    fdate = request.form.get('leave_from_date')
+    tdate = request.form.get('leave_to_date')
+    #fdate = datetime.strptime(request.form.get('leave_from_date'),"%Y-%m-%d")
+    #tdate = datetime.strptime(request.form.get('leave_to_date'),"%Y-%m-%d")
+    ltype = (request.form.get('leave_type'))
+    fdatetype = (request.form.get('leave_from_period'))  # Adjusted for consistency
+    tdatetype = (request.form.get('leave_to_period'))  # Adjusted for consistency
+    html_text=''
+    if fdate==tdate and ((fdatetype=='1' and tdatetype=='0') or (fdatetype=='2' and tdatetype !='2')  or (fdatetype !='2' and tdatetype=='2') ) :
+       html_text = html_text+'<tr><td>Date type Afternoon and Morning mismatch for same date</td></tr>'
+    
+    if ltype=='99':
+       html_text = html_text+'<tr><td>Leave type should not be None</td></tr>'
+       #flash("Leave type should not be None",category='error')
+    if not fdate:
+       html_text = html_text+'<tr><td>FROM date should not be blank</td></tr>'
+       #flash("FROM date should not be blank",category='error')
+    if not tdate:
+       html_text = html_text+'<tr><td>TO date should not be blank</td></tr>'
+       #flash("TO date should not be blank",category='error')
+    if not fdatetype:
+       html_text = html_text+'<tr><td>FROM date type should not be blank</td></tr>'
+       #flash("FROM date type should not be blank",category='error')
+    if not tdatetype:
+       html_text = html_text+'<tr><td>TO date type should not be blank</td></tr>'
+       #flash("FROM date type should not be blank",category='error')
+        
+    if fdate > tdate:
+       html_text = html_text+'<tr><td>TO date always greater than FROM date</td></tr>'
+       #flash("TO date always greater than FROM date",category='error')
+    elif request.form.get('remarks')=="":
+       html_text = html_text+'<tr><td>Remarks should not be blank</td></tr>'
+       #flash("Remarks should not be blank",category='error')
+    if (html_text) !='':
+      html_text = '<table><tr><td>'+html_text+'</table>'
+      return jsonify({'error': html_text})
+    else:
+       # calculating No of days eligible
+       TotalDays = (datetime.strptime(tdate,"%Y-%m-%d")-datetime.strptime(fdate,"%Y-%m-%d")).days+1
+       if fdatetype=='1':
+          TotalDays=TotalDays-.5
+       if tdatetype=='0':
+          TotalDays=TotalDays-.5
+
+      
+       if ltype=='0' and TotalDays >cl.cl_bal:
+          html_text = f'<table><tr><td>Insufficient CL balance {cl.cl_bal} against availing {TotalDays}</table>'
+       if ltype=='1' and TotalDays >cl.el_bal:
+          html_text = f'<table><tr><td>Insufficient AL balance {cl.el_bal} against availing {TotalDays}</table>'
+       if ltype=='2' and TotalDays >cl.sl_bal:
+          html_text = f'<table><tr><td>Insufficient SL balance {cl.sl_bal} against availing {TotalDays}</table>'
+       if (ltype=='3' or ltype=='4') and TotalDays >cl.ot_bal:
+          html_text = f'<table><tr><td>Insufficient OTHER balance {cl.ot_bal} against availing {TotalDays}</table>'
 
 
-    # Access individual form fields
-    ltype = formdata.get('leave_type')
-    fdate = formdata.get('leave_from_date')
-    fdatetype = formdata.get('leave_from_period')  # Adjusted for consistency
-    tdate = formdata.get('leave_to_date')
-    tdatetype = formdata.get('leave_to_period')  # Adjusted for consistency
+       if html_text !='':
+          return jsonify({'error': html_text})
+       else:           
+          return jsonify({'message': 'SUCCESSFULLY Checked.  You may submit now'})
 
-    html_text = '<table><tr><td>'+str(ltype)+'</td></tr>'
-    html_text = html_text+'<tr><td>'+str(fdate)+'</td></tr>'
-    html_text = html_text+'<tr><td>'+str(fdatetype)+'</td></tr>'
-    html_text = html_text+'<tr><td>'+str(tdate)+'</td></tr>'
-    html_text = html_text+'<tr><td>'+str(tdatetype)+'</td></tr></table>'
-
-    print('html', html_text)
-    return jsonify({'message': html_text})
+    #return render_template("leaveentry.html", user=current_user,leave_codes=result, htmltext=html_text)

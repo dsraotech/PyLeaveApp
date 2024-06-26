@@ -58,7 +58,7 @@
                         <div class="form-group row">
                             <div class="offset-md-4 col-md-8">
                                 <button type="button" onclick="checkBalance('{{user.emp_code}}')" class="btn btn-primary">Check Balance</button>
-                                <input type="submit" value="Submit" class="btn btn-success">
+                                <input type="submit" value="Submit" id="sbtbtn" disabled class="btn btn-success">
                             </div>
                         </div>
                     </form>
@@ -72,12 +72,10 @@
                     <div id="info">
                         <div id="table"> 
                             <table class="table">
-                            {% for hdata in htmldata %}
-                             <tr><td>CL</td><td> {{hdata.clsbal}}</td></tr>
-                              <tr><td>EL</td><td> {{hdata.elsbal}}</td></tr>
-                              <tr><td>SL</td><td> {{hdata.slsbal}}</td></tr>
-                              <tr><td>OT</td><td> {{hdata.ohsbal}}</td></tr>
-                             {% endfor %}         
+                             <tr><td>CL</td><td> {{cl_data.cl_bal}}</td></tr>
+                              <tr><td>EL</td><td> {{cl_data.el_bal}}</td></tr>
+                              <tr><td>SL</td><td> {{cl_data.sl_bal}}</td></tr>
+                              <tr><td>OT</td><td> {{cl_data.ot_bal}}</td></tr>
                             </table>         
                         </div>
                         <div id="result">                            
@@ -107,11 +105,27 @@
             })
             .then(data => {
                 // Display the message on the page
+                if (data.error)
+                {
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `<p>${data.error}</p>`;
+                var submitButton = document.getElementById('sbtbtn');
+                submitButton.disabled = true;
+                
+            }
+            else
+            {
                 const resultDiv = document.getElementById('result');
                 resultDiv.innerHTML = `<p>${data.message}</p>`;
+                var submitButton = document.getElementById('sbtbtn');
+                submitButton.disabled = false;
+            }
             })
             .catch(error => {
                 console.error('There has been a problem with your fetch operation:', error);
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+
             });
         }
     </script>
