@@ -8,7 +8,7 @@ import os
 import time
 from sqlalchemy import create_engine, text
 
-engine = create_engine('oracle://dsr:dsr@localhost:1521/?service_name=dsrdb')
+engine = create_engine('oracle://dsr:dsr@EFF-LPT-206:1521/?service_name=dsrdb')
 with engine.connect() as conn:
         select_query = text("SELECT * FROM TLEAVES")
         result = conn.execute(select_query)

@@ -45,12 +45,21 @@ def leaveapproval():
 def reports():
     return render_template("reports.html",user=current_user)
 
+@views.route("/leaveprocess", methods=['POST'])
+def leaveprocess():
+    formdata = request.form  # Access form data from request object
+    fdate = request.form.get('leave_from_date')
+    tdate = request.form.get('leave_to_date')
+    return render_template("reports.html",user=current_user)
+
+
+
 @views.route('/leaveentry', methods=['GET', 'POST'])
 def leaveentry():
    global result, cl
  #if request.method=='GET':
    with engine.connect() as conn:
-    mytext = "select 99 code,'None' descr from dual  union all select SUB_CODE code,DESCR from codes_master where GROUP_CODE=16 "
+    mytext = "select -1 code,'None' descr from dual  union all select SUB_CODE code,DESCR from codes_master where GROUP_CODE=16 ORDER BY 1"
     select_query = text(mytext)
     result = conn.execute(select_query)   
     cl = Leavebal.get_leave_balance(current_user.emp_code)
@@ -75,10 +84,10 @@ def checkbalance():
     fdatetype = (request.form.get('leave_from_period'))  # Adjusted for consistency
     tdatetype = (request.form.get('leave_to_period'))  # Adjusted for consistency
     html_text=''
+    # data validation
     if fdate==tdate and ((fdatetype=='1' and tdatetype=='0') or (fdatetype=='2' and tdatetype !='2')  or (fdatetype !='2' and tdatetype=='2') ) :
-       html_text = html_text+'<tr><td>Date type Afternoon and Morning mismatch for same date</td></tr>'
-    
-    if ltype=='99':
+       html_text = html_text+'<tr><td>Afternoon and Morning SLOTS mismatch for the same date</td></tr>'
+    if ltype=='-1':
        html_text = html_text+'<tr><td>Leave type should not be None</td></tr>'
        #flash("Leave type should not be None",category='error')
     if not fdate:
@@ -92,8 +101,7 @@ def checkbalance():
        #flash("FROM date type should not be blank",category='error')
     if not tdatetype:
        html_text = html_text+'<tr><td>TO date type should not be blank</td></tr>'
-       #flash("FROM date type should not be blank",category='error')
-        
+       #flash("FROM date type should not be blank",category='error')        
     if fdate > tdate:
        html_text = html_text+'<tr><td>TO date always greater than FROM date</td></tr>'
        #flash("TO date always greater than FROM date",category='error')
@@ -104,22 +112,36 @@ def checkbalance():
       html_text = '<table><tr><td>'+html_text+'</table>'
       return jsonify({'error': html_text})
     else:
-       # calculating No of days eligible
+      # calculating No of days eligible
+      # CL          0
+      # EL          1
+      # SL          2
+      # OFF         3
+      # OD-OFF      4
+      # LOP         5
+      # OPTIONAL    6
+
        TotalDays = (datetime.strptime(tdate,"%Y-%m-%d")-datetime.strptime(fdate,"%Y-%m-%d")).days+1
        if fdatetype=='1':
           TotalDays=TotalDays-.5
        if tdatetype=='0':
           TotalDays=TotalDays-.5
 
-      
+       # leave rules checking
        if ltype=='0' and TotalDays >cl.cl_bal:
-          html_text = f'<table><tr><td>Insufficient CL balance {cl.cl_bal} against availing {TotalDays}</table>'
+          html_text = f'<table><tr><td>Insufficient CL balance {cl.cl_bal} against availing {TotalDays}</td></tr></table>'
+       if ltype=='0' and TotalDays >2.5:
+             html_text = f'<tr><td>Maximum days for CL is 2.5 but try to avail {TotalDays} days</td></tr></table>'
        if ltype=='1' and TotalDays >cl.el_bal:
-          html_text = f'<table><tr><td>Insufficient AL balance {cl.el_bal} against availing {TotalDays}</table>'
+          html_text = f'<table><tr><td>Insufficient AL balance {cl.el_bal} against availing {TotalDays}</td></tr></table>'
+       if ltype=='1' and TotalDays < 2.0:
+             html_text = f'<tr><td>Minimum days for EL is 2 but try to avail {TotalDays} days only</td></tr></table>'
        if ltype=='2' and TotalDays >cl.sl_bal:
-          html_text = f'<table><tr><td>Insufficient SL balance {cl.sl_bal} against availing {TotalDays}</table>'
+          html_text = f'<table><tr><td>Insufficient SL balance {cl.sl_bal} against availing {TotalDays}</td></tr></table>'
+       if ltype=='2' and TotalDays < 2.0:
+             html_text = f'<tr><td>Minimum days for SL is 2 but try to avail {TotalDays} days only</td></tr></table>'
        if (ltype=='3' or ltype=='4') and TotalDays >cl.ot_bal:
-          html_text = f'<table><tr><td>Insufficient OTHER balance {cl.ot_bal} against availing {TotalDays}</table>'
+          html_text = f'<table><tr><td>Insufficient OTHER balance {cl.ot_bal} against availing {TotalDays}</td></tr></table>'
 
 
        if html_text !='':

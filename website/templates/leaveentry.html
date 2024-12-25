@@ -7,7 +7,7 @@
             <div class="col-md-6">
                 <h3>Leave Request Form</h4><br>
                 <div id="leaveEntryForm">
-                    <form method="POST" id="myform">
+                    <form method="POST" id="myform" action="/leaveprocess">
                         <div class="form-group row">
                             <label for="leave_type" class="col-md-4 col-form-label">Leave Type:</label>
                             <div class="col-md-8">
@@ -108,6 +108,8 @@
                 if (data.error)
                 {
                 const resultDiv = document.getElementById('result');
+                resultDiv.className="alert alert-danger alter-dismissable fade show";
+                resultDiv.setAttribute('role', 'alert');
                 resultDiv.innerHTML = `<p>${data.error}</p>`;
                 var submitButton = document.getElementById('sbtbtn');
                 submitButton.disabled = true;
@@ -116,6 +118,8 @@
             else
             {
                 const resultDiv = document.getElementById('result');
+                resultDiv.className="alert alert-success alter-dismissable fade show" ;
+                resultDiv.setAttribute('role', 'alert');
                 resultDiv.innerHTML = `<p>${data.message}</p>`;
                 var submitButton = document.getElementById('sbtbtn');
                 submitButton.disabled = false;
